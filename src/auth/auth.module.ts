@@ -9,6 +9,7 @@ import { AuthService } from "./auth.service";
 import { EmailService } from "src/common/utils/email.util";
 import { AuditLog, AuditLogSchema } from "src/auditlogs/schema/auditlog.schema";
 import { JwtStrategy } from "./jwt.strategy";
+import { Role, RoleSchema } from "src/role/schema/role.schema";
 
 @Module({
     imports: [
@@ -23,7 +24,8 @@ import { JwtStrategy } from "./jwt.strategy";
         MongooseModule.forFeature([
             { name: User.name, schema: UserSchema },
             { name: OTP.name, schema: OTPSchema},
-            { name: AuditLog.name, schema: AuditLogSchema}
+            { name: AuditLog.name, schema: AuditLogSchema},
+            { name: Role.name, schema: RoleSchema }
         ])
     ],
     controllers: [AuthController],

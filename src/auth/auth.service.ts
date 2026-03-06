@@ -9,6 +9,7 @@ import { generateOTP } from "src/common/utils/otp.util";
 import bcrypt from 'bcrypt';
 import { createAuditLog } from "src/common/utils/auditlogs.util";
 import { AuditLog, AuditLogDocument } from "src/auditlogs/schema/auditlog.schema";
+import { Role, RoleDocument } from "src/role/schema/role.schema";
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,9 @@ export class AuthService {
 
         @InjectModel(AuditLog.name)
         private auditLogModel: Model<AuditLogDocument>,
+
+        @InjectModel(Role.name)
+        private roleModel: Model<RoleDocument>,
 
         private jwtService: JwtService,
         private emailService: EmailService,
@@ -44,6 +48,17 @@ export class AuthService {
         });
 
         let user = await this.userModel.findOne({ email });
+        const citizenRole = await this.roleModel.findOne({ role: "citizen" });
+
+        if (!citizenRole) {
+            throw new NotFoundException("Citizen role not found");
+        }
+
+        user = await this.userModel.create({
+            email,
+            role: citizenRole._id
+        });
+
 
         if (!user) {
             user = await this.userModel.create({ email });

@@ -6,6 +6,7 @@ import configuration from './config/configuration';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 
+
 @Module({
   imports: [
     ConfigModule.forRoot({

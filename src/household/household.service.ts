@@ -80,4 +80,19 @@ export class HouseHoldService {
 
         return { success: true, message: "House registered successfully" };
     }
+
+
+    async getAllHouses(token: string) {
+        const payload = this.jwtService.verify(token)
+
+        const checkuser = await this.userModel.findOne({ email: payload.user })
+
+        if(!checkuser){
+            throw new NotFoundException("The User Not Found")
+        }
+
+        const gethouses = await this.householeModel.find()
+
+        return { success: true, result: gethouses, message: "All Houses Fetched Success" }
+    }
 }

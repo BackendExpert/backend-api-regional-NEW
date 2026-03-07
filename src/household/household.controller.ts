@@ -1,6 +1,7 @@
 import {
     Body,
     Controller,
+    Get,
     Headers,
     Post,
     UnauthorizedException,
@@ -21,7 +22,7 @@ export class HouseHoldController {
     @Post("create-house")
     @UseGuards(JwtAuthGuard, PermissionsGuard)
     @Permissions("house:create")
-    
+
     async HouseHoldCreate(
         @Body() dto: CreateHouseHoldDTO,
         @Headers("authorization") authHeader: string,
@@ -39,5 +40,21 @@ export class HouseHoldController {
             client.ipAddress,
             client.userAgent
         );
+    }
+
+    @Get('all-houses')
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @Permissions("house:fetch-all")
+
+    async fetchAllHouse(
+        @Headers("authorization") authHeader: string,
+    ) {
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            throw new UnauthorizedException("Invalid or missing token");
+        }
+
+        const token = authHeader.split(" ")[1];
+
+        return this.househodService.getAllHouses(token)
     }
 }

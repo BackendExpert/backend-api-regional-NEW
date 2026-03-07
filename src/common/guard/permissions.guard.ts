@@ -16,6 +16,7 @@ export class PermissionsGuard implements CanActivate {
             context.getClass(),
         ]);
 
+
         if (!requiredPermissions) return true;
 
         const request = context.switchToHttp().getRequest();
@@ -27,8 +28,12 @@ export class PermissionsGuard implements CanActivate {
         }
 
 
-        const permissions = await this.roleService.GetPermissions(user.role);
+        if (user.role === 'super_admin') {
+            console.log('Super admin access granted');
+            return true;
+        }
 
+        const permissions = await this.roleService.GetPermissions(user.role);
 
         console.log('User role:', user.role);
         console.log('Required permissions:', requiredPermissions);
@@ -38,7 +43,6 @@ export class PermissionsGuard implements CanActivate {
 
         if (!hasPermission) {
             console.log('Access denied for user role:', user.role);
-            
             throw new ForbiddenException('Access denied');
         }
 

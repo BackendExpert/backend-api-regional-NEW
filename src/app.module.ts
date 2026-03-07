@@ -6,6 +6,7 @@ import configuration from './config/configuration';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { HouseHoldModule } from './household/household.module';
+import { CitizanModule } from './citizen/citizan.module';
 
 
 @Module({
@@ -17,6 +18,7 @@ import { HouseHoldModule } from './household/household.module';
     DatabaseModule,
     AuthModule,
     HouseHoldModule,
+    CitizanModule
   ],
   controllers: [AppController],
   providers: [AppService],

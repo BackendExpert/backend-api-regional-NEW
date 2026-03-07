@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { User, UserDocument } from "src/user/schema/user.schema";
@@ -157,7 +157,51 @@ export class HouseHoldService {
             metadata: { ipAddress, userAgent, updateData: dto },
         });
 
-        return { success: true, message: "House Updated Successful"}
+        return { success: true, message: "House Updated Successful" }
+
+    }
+
+    async DeleteHouse(
+        token: string,
+        house_number: string,
+        ipAddress?: string,
+        userAgent?: string
+    ) {
+        const payload = this.jwtService.verify(token)
+
+        const user = await this.userModel.findOne({ email: payload.user })
+
+        if (!user) {
+            throw new NotFoundException("The User Not Found")
+        }
+
+        const house = await this.householeModel.findOne({ house_number });
+        if (!house) {
+            await createAuditLog(this.auditlogModel, {
+                user: user._id,
+                action: 'DELETE_UNKNOWN_HOUSE',
+                description: `House ${house_number} does not exist, and user ${user.email} attempted to delete`,
+                ipAddress,
+                userAgent,
+                metadata: { ipAddress, userAgent },
+            });
+
+            throw new ConflictException('This house does not exist in the system');
+        }
+
+
+        await house.deleteOne();
+
+        await createAuditLog(this.auditlogModel, {
+            user: user._id,
+            action: 'HOUSEHOLD_DELETED',
+            description: `House ${house_number} deleted successfully by ${user.email}`,
+            ipAddress,
+            userAgent,
+            metadata: { ipAddress, userAgent, house_number },
+        });
+
+        return { successs: true, message: "House Deleted Success"}
 
     }
 }

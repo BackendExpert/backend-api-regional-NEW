@@ -8,6 +8,7 @@ import {
     UseGuards,
     Param,
     Patch,
+    Delete,
 } from "@nestjs/common";
 import { HouseHoldService } from "./household.service";
 import { CreateHouseHoldDTO } from "./dtos/create-household.dto";
@@ -102,5 +103,29 @@ export class HouseHoldController {
             client.ipAddress,
             client.userAgent
         )
+    }
+
+    @Delete('house-delete/:id')
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @Permissions('house:delete')
+
+    async DeleteHouse(
+        @Param('id') id: string,
+        @Headers('authorization') authHeader: string,
+        @ClientInfoDecorator() client: ClientInfo
+    ) {
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            throw new UnauthorizedException("Invalid or missing token");
+        }
+
+        const token = authHeader.split(" ")[1];
+
+        return this.househodService.DeleteHouse(
+            token,
+            id,
+            client.ipAddress,
+            client.userAgent
+        )
+
     }
 }

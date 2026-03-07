@@ -6,6 +6,7 @@ import {
     Post,
     UnauthorizedException,
     UseGuards,
+    Param,
 } from "@nestjs/common";
 import { HouseHoldService } from "./household.service";
 import { CreateHouseHoldDTO } from "./dtos/create-household.dto";
@@ -56,5 +57,23 @@ export class HouseHoldController {
         const token = authHeader.split(" ")[1];
 
         return this.househodService.getAllHouses(token)
+    }
+
+    @Get('get-house/:id')
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @Permissions("house:fetch-by-hnumber")
+
+    async fetchHouse(
+        @Param('id') id: string,
+        @Headers('authorization') authHeader: string,
+
+    ) {
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            throw new UnauthorizedException("Invalid or missing token");
+        }
+
+        const token = authHeader.split(" ")[1];
+
+        return this.househodService.getHouseById(token, id)
     }
 }

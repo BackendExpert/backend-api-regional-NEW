@@ -87,12 +87,31 @@ export class HouseHoldService {
 
         const checkuser = await this.userModel.findOne({ email: payload.user })
 
-        if(!checkuser){
+        if (!checkuser) {
             throw new NotFoundException("The User Not Found")
         }
 
         const gethouses = await this.householeModel.find()
 
         return { success: true, result: gethouses, message: "All Houses Fetched Success" }
+    }
+
+    async getHouseById(token: string, house_number: string) {
+        const payload = this.jwtService.verify(token)
+
+        const checkuser = await this.userModel.findOne({ email: payload.user })
+
+        if (!checkuser) {
+            throw new NotFoundException("The User Not Found")
+        }
+
+        const fetchhouse = await this.householeModel.findOne({ house_number: house_number })
+
+        if(!fetchhouse){
+            throw new NotFoundException("The House cannot Found...")
+        }
+
+        return { success: true, result: fetchhouse, message: "The House Data Fetched Success"}
+
     }
 }

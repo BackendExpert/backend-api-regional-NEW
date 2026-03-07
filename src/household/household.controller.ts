@@ -20,7 +20,8 @@ export class HouseHoldController {
 
     @Post("create-house")
     @UseGuards(JwtAuthGuard, PermissionsGuard)
-    @Permissions("carbon:today-intensity")
+    @Permissions("house:create")
+    
     async HouseHoldCreate(
         @Body() dto: CreateHouseHoldDTO,
         @Headers("authorization") authHeader: string,

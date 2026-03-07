@@ -8,9 +8,13 @@ import { HouseHoldService } from "./household.service";
 import { JwtService } from "@nestjs/jwt";
 import { PermissionsGuard } from "src/common/guard/permissions.guard";
 import { JwtAuthGuard } from "src/common/guard/jwt-auth.guard";
+import { RoleModule } from "src/role/role.module";
+import { AuthModule } from "src/auth/auth.module";
 
-Module({
+@Module({
     imports: [
+        RoleModule,
+        AuthModule,
         MongooseModule.forFeature([
             { name: User.name, schema: UserSchema },
             { name: HouseHold.name, schema: HouseHoldSchema },
@@ -20,9 +24,8 @@ Module({
     controllers: [HouseHoldController],
     providers: [
         HouseHoldService,
-        JwtService,
-        PermissionsGuard,
         JwtAuthGuard,
+        PermissionsGuard,
     ],
     exports: [HouseHoldService]
 })

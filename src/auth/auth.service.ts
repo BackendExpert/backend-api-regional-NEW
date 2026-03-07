@@ -31,15 +31,18 @@ export class AuthService {
     ) { }
 
     async RequestOTP(email: string, ipAddress?: string, userAgent?: string) {
+
+        // Check existing OTP
         const existingOTP = await this.otpModel.findOne({ email });
 
         if (existingOTP) {
             throw new ConflictException("OTP already sent, check your email...");
         }
 
+        // Generate OTP
         const otp = generateOTP(8);
-        const expireOTP = new Date(Date.now() + 5 * 60 * 1000);
         const hashedOTP = await bcrypt.hash(otp, 10);
+        const expireOTP = new Date(Date.now() + 5 * 60 * 1000);
 
         await this.otpModel.create({
             email,
@@ -47,29 +50,27 @@ export class AuthService {
             expireAt: expireOTP,
         });
 
+        // Find user
         let user = await this.userModel.findOne({ email });
+
+        // Get citizen role
         const citizenRole = await this.roleModel.findOne({ role: "citizen" });
 
         if (!citizenRole) {
             throw new NotFoundException("Citizen role not found");
         }
 
-        user = await this.userModel.create({
-            email,
-            role: citizenRole._id
-        });
+        let message = "";
 
-
+        // Register new user if not exists
         if (!user) {
-            user = await this.userModel.create({ email });
-            await this.emailService.sendOTP(user.email, otp);
+            user = await this.userModel.create({
+                email,
+                role: citizenRole._id
+            });
 
-            const token = this.jwtService.sign(
-                { sub: user._id, email, type: "OTP_TOKEN" },
-                { expiresIn: '5m' }
-            );
+            message = "Registration successful, OTP sent to email";
 
-            // Audit log for new registration OTP
             await createAuditLog(this.auditLogModel, {
                 user: user._id,
                 action: "REGISTER_OTP_SENT",
@@ -79,17 +80,10 @@ export class AuthService {
                 metadata: { ipAddress, userAgent }
             });
 
-            return { success: true, message: "Registration successful, OTP sent to email", token };
         } else {
-            // await this.emailService.sendOTP(user.email, otp);
-            await this.emailService.sendOTP(user.email, otp, ipAddress, userAgent);
 
-            const token = this.jwtService.sign(
-                { sub: user._id, email, type: "OTP_TOKEN" },
-                { expiresIn: '5m' }
-            );
+            message = "Welcome back, OTP sent to email";
 
-            // Audit log for login OTP
             await createAuditLog(this.auditLogModel, {
                 user: user._id,
                 action: "LOGIN_OTP_SENT",
@@ -98,11 +92,23 @@ export class AuthService {
                 userAgent,
                 metadata: { ipAddress, userAgent }
             });
-
-            return { success: true, message: "Welcome back, OTP sent to email", token };
         }
-    }
 
+        // Send OTP email
+        await this.emailService.sendOTP(user.email, otp, ipAddress, userAgent);
+
+        // Generate token
+        const token = this.jwtService.sign(
+            { sub: user._id, email, type: "OTP_TOKEN" },
+            { expiresIn: "5m" }
+        );
+
+        return {
+            success: true,
+            message,
+            token
+        };
+    }
     async VerifyOTP(token: string, otp: string, ipAddress?: string, userAgent?: string) {
         const payload = this.jwtService.verify(token);
 
@@ -115,7 +121,15 @@ export class AuthService {
             throw new NotFoundException("OTP record not found, try again");
         }
 
-        const user = await this.userModel.findOne({ email: payload.email });
+        if (new Date() > otpRecord.expireAt) {
+            throw new UnauthorizedException("OTP is Expired");
+        }
+
+        const user = await this.userModel
+            .findOne({ email: payload.email })
+            .populate<{ role: Role }>("role") 
+            .exec();
+
         if (!user) {
             throw new NotFoundException("User not found");
         }
@@ -123,9 +137,9 @@ export class AuthService {
         const isOTPValid = await bcrypt.compare(otp, otpRecord.otp);
         if (!isOTPValid) {
             await createAuditLog(this.auditLogModel, {
-                user: user?._id,
-                action: "LOGIN_FAILD - WRONG_OTP",
-                description: `Login Faild with Wrong OTP`,
+                user: user._id,
+                action: "LOGIN_FAILED - WRONG_OTP",
+                description: `Login failed with wrong OTP`,
                 ipAddress,
                 userAgent,
                 metadata: { ipAddress, userAgent }
@@ -136,28 +150,25 @@ export class AuthService {
         user.last_login = new Date();
         await user.save();
 
+
         const loginToken = this.jwtService.sign({
-            sub: user?._id,
-            user: user?.email,
-            role: user?.role,
+            sub: user._id,
+            user: user.email,
+            role: user.role.role,
             type: "LOGIN_TOKEN"
         });
 
-        // await this.emailService.NotificationEmail(user?.email || '', "Login Success");
-        await this.emailService.NotificationEmail(user?.email || '', "Login Success", ipAddress, userAgent);
+        await this.emailService.NotificationEmail(user.email, "Login Success", ipAddress, userAgent);
         await this.otpModel.deleteOne({ email: payload.email });
 
-        // Audit log for successful login
         await createAuditLog(this.auditLogModel, {
-            user: user?._id,
+            user: user._id,
             action: "LOGIN_SUCCESS",
             description: `User logged in successfully`,
             ipAddress,
             userAgent,
             metadata: { ipAddress, userAgent }
         });
-
-
 
         return { success: true, message: "Login successful", token: loginToken };
     }

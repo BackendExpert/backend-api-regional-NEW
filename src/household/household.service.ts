@@ -20,7 +20,7 @@ export class HouseHoldService {
         @InjectModel(AuditLog.name)
         private auditlogModel: Model<AuditLogDocument>,
 
-        private jwtService: JwtService
+        private readonly jwtService: JwtService
     ) { }
 
     async CreateHouseHold(
@@ -30,8 +30,9 @@ export class HouseHoldService {
         userAgent?: string
     ) {
         const payload = await this.jwtService.verify(token)
+        console.log(payload.user)
 
-        const user = await this.userModel.findOne({ email: payload.email })
+        const user = await this.userModel.findOne({ email: payload.user })
 
         if (!user) {
             throw new NotFoundException("The User Not Found")

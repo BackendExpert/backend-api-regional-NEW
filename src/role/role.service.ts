@@ -5,12 +5,13 @@ import { Model } from "mongoose";
 
 @Injectable()
 export class RoleService {
-    constructor (
-        @InjectModel(Role.name) private roleModel: Model<RoleDocument>,
-    ) {}
+    constructor(
+        @InjectModel(Role.name)
+        private roleModel: Model<RoleDocument>,
+    ) { }
 
-    async GetPermissions (roleName: string): Promise<String[]> {
-        const role = await this.roleModel.findOne({ name: roleName })
-        return role?.permissions || []
+    async GetPermissions(roleName: string): Promise<string[]> {
+        const roleDoc = await this.roleModel.findOne({ role: roleName });
+        return roleDoc?.permissions || [];
     }
 }

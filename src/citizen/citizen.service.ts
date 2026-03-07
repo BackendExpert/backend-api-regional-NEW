@@ -5,8 +5,9 @@ import { Model } from "mongoose";
 import { User, UserDocument } from "src/user/schema/user.schema";
 import { AuditLog, AuditLogDocument } from "src/auditlogs/schema/auditlog.schema";
 import { JwtService } from "@nestjs/jwt";
-import { CreateCitizenDTO } from "./dto/citizan.dto";
+import { CreateCitizenDTO } from "./dto/create-citizan.dto";
 import { createAuditLog } from "src/common/utils/auditlogs.util";
+import { UpdateCitizanDTO } from "./dto/update-citizan.dto";
 
 @Injectable()
 export class CitizenService {
@@ -79,6 +80,66 @@ export class CitizenService {
             metadata: { ipAddress, userAgent }
         });
 
-        return { success: true, message: "Citizan registered Success"}
+        return { success: true, message: "Citizan registered Success" }
     }
+
+    async GetAllCitizans(token: string) {
+        const payload = await this.jwtService.verify(token)
+        const user = await this.userModel.findOne({ email: payload.user })
+
+        if (!user) {
+            throw new NotFoundException("The User Not Found")
+        }
+
+        const fetchCitizans = await this.citizanModel.find()
+
+        return { success: true, result: fetchCitizans, message: "All Citizans Fetach Success" }
+
+    }
+
+    async UpdateCitizan(
+        token: string,
+        nic: string,
+        dto: UpdateCitizanDTO,
+        ipAddress?: string,
+        userAgent?: string
+    ) {
+        const payload = await this.jwtService.verify(token)
+        const user = await this.userModel.findOne({ email: payload.user })
+
+        if (!user) {
+            throw new NotFoundException("The User Not Found")
+        }
+
+        const citizan = await this.citizanModel.findOne({ nic });
+        if (!citizan) {
+            await createAuditLog(this.auditlogModel, {
+                user: user._id,
+                action: 'UPDATING_UNKNOWN_CITIZAN',
+                description: `Citizan ${nic} does not exist, and user ${user.email} attempted to update`,
+                ipAddress,
+                userAgent,
+                metadata: { ipAddress, userAgent },
+            });
+
+            throw new ConflictException('This Citizan does not exist in the system');
+        }
+        Object.assign(citizan, dto);
+        await citizan.save();
+
+
+        await createAuditLog(this.auditlogModel, {
+            user: user._id,
+            action: 'CITIZAN_UPDATED',
+            description: `Citizan ${nic} updated successfully by ${user.email}`,
+            ipAddress,
+            userAgent,
+            metadata: { ipAddress, userAgent, updateData: dto },
+        });
+
+        return { success: true, message: "Citizan Updated Success"}
+        
+    }
+
+
 }

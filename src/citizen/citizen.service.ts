@@ -97,6 +97,20 @@ export class CitizenService {
 
     }
 
+    async GetOneCitizan(token: string, nic: string) {
+        const payload = await this.jwtService.verify(token)
+        const user = await this.userModel.findOne({ email: payload.user })
+
+        if (!user) {
+            throw new NotFoundException("The User Not Found")
+        }
+
+        const fetchnicCitizan = await this.citizanModel.findOne({ nic })
+
+        return { success: true, result: fetchnicCitizan, message: "Citizan Fetched Successful" }
+
+    }
+
     async UpdateCitizan(
         token: string,
         nic: string,
@@ -137,8 +151,8 @@ export class CitizenService {
             metadata: { ipAddress, userAgent, updateData: dto },
         });
 
-        return { success: true, message: "Citizan Updated Success"}
-        
+        return { success: true, message: "Citizan Updated Success" }
+
     }
 
 

@@ -36,7 +36,7 @@ export class CitizanController {
         )
     }
 
-    @Get('all-citizan')
+    @Get('citizan-fetch')
     @UseGuards(JwtAuthGuard, PermissionsGuard)
     @Permissions("citizan:get-all")
 
@@ -51,6 +51,26 @@ export class CitizanController {
 
         return this.citizanService.GetAllCitizans(token)
     }
+
+
+    @Get('citizan-fetch/:id')
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @Permissions("citizan:fetch-one")
+
+    citizanOneFetch(
+        @Param('id') id: string,
+        @Headers("authorization") authHeader: string,
+    ) {
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            throw new UnauthorizedException("Invalid or missing token");
+        }
+
+        const token = authHeader.split(" ")[1];
+
+        return this.citizanService.GetOneCitizan(token, id)
+    }
+
+
 
     @Patch('update/:id')
     @UseGuards(JwtAuthGuard, PermissionsGuard)

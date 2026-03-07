@@ -155,5 +155,49 @@ export class CitizenService {
 
     }
 
+    async DeleteCitizan(
+        token: string,
+        nic: string,
+        ipAddress?: string,
+        userAgent?: string
+    ) {
+        const payload = this.jwtService.verify(token)
+
+        const user = await this.userModel.findOne({ email: payload.user })
+
+        if (!user) {
+            throw new NotFoundException("The User Not Found")
+        }
+
+        const citizan = await this.citizanModel.findOne({ nic });
+        if (!citizan) {
+            await createAuditLog(this.auditlogModel, {
+                user: user._id,
+                action: 'DELETE_UNKNOWN_CITIZAN',
+                description: `Citizan ${nic} does not exist, and user ${user.email} attempted to delete`,
+                ipAddress,
+                userAgent,
+                metadata: { ipAddress, userAgent },
+            });
+
+            throw new ConflictException('This Citizan does not exist in the system');
+        }
+
+
+        await citizan.deleteOne();
+
+        await createAuditLog(this.auditlogModel, {
+            user: user._id,
+            action: 'CITIZAN_DELETED',
+            description: `Citizan ${nic} deleted successfully by ${user.email}`,
+            ipAddress,
+            userAgent,
+            metadata: { ipAddress, userAgent, nic },
+        });
+
+        return { successs: true, message: "Citizan Deleted Success" }
+
+    }
+
 
 }

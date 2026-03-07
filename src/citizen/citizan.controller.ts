@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Param, Patch, Post, UnauthorizedException, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Headers, Param, Patch, Post, UnauthorizedException, UseGuards } from "@nestjs/common";
 import { CitizenService } from "./citizen.service";
 import { CreateCitizenDTO } from "./dto/create-citizan.dto";
 import { JwtAuthGuard } from "src/common/guard/jwt-auth.guard";
@@ -96,4 +96,23 @@ export class CitizanController {
             client.userAgent
         )
     }
+
+    @Delete('citizan-delete/:id')
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @Permissions("citizan:delete")
+
+    deleteCitizan(
+        @Param('id') id: string,
+        @Headers("authorization") authHeader: string,
+        @ClientInfoDecorator() client: ClientInfo
+    ) {
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            throw new UnauthorizedException("Invalid or missing token");
+        }
+
+        const token = authHeader.split(" ")[1];
+
+        return this.citizanService.DeleteCitizan(token, id)
+    }
+
 }

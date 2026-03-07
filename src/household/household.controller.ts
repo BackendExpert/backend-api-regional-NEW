@@ -7,6 +7,7 @@ import {
     UnauthorizedException,
     UseGuards,
     Param,
+    Patch,
 } from "@nestjs/common";
 import { HouseHoldService } from "./household.service";
 import { CreateHouseHoldDTO } from "./dtos/create-household.dto";
@@ -15,6 +16,7 @@ import type { ClientInfo } from "src/common/interfaces/client-info.interface";
 import { JwtAuthGuard } from "src/common/guard/jwt-auth.guard";
 import { PermissionsGuard } from "src/common/guard/permissions.guard";
 import { Permissions } from "src/common/decorators/permissions.decorator";
+import { UpdateHouseHoldDTO } from "./dtos/update-household.dto";
 
 @Controller("house")
 export class HouseHoldController {
@@ -75,5 +77,30 @@ export class HouseHoldController {
         const token = authHeader.split(" ")[1];
 
         return this.househodService.getHouseById(token, id)
+    }
+
+    @Patch('update-house/:id')
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
+    @Permissions("house:update")
+
+    async UpdateHouse(
+        @Body() dto: UpdateHouseHoldDTO,
+        @Param('id') id: string,
+        @Headers('authorization') authHeader: string,
+        @ClientInfoDecorator() client: ClientInfo
+    ) {
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            throw new UnauthorizedException("Invalid or missing token");
+        }
+
+        const token = authHeader.split(" ")[1];
+
+        return this.househodService.UpdateHouseHold(
+            token,
+            id,
+            dto,
+            client.ipAddress,
+            client.userAgent
+        )
     }
 }

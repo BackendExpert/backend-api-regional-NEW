@@ -29,10 +29,12 @@ export class PermissionsGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         const user = request.user;
 
+        if (!user) throw new ForbiddenException('User not found');
+
         const permissions = await this.rolesService.GetPermissions(user.role);
 
-        const hasPermission = requiredPermissions.every(p =>
-            permissions.includes(p),
+        const hasPermission = requiredPermissions.every(permission =>
+            permissions.includes(permission),
         );
 
         if (!hasPermission)

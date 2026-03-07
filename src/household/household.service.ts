@@ -31,7 +31,7 @@ export class HouseHoldService {
         userAgent?: string
     ) {
         const payload = await this.jwtService.verify(token)
-        console.log(payload.user)
+        // console.log(payload.user)
 
         const user = await this.userModel.findOne({ email: payload.user })
 

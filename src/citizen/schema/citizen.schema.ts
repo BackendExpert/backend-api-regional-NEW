@@ -5,9 +5,6 @@ export type CitizenDocument = Citizen & Document;
 
 @Schema({ timestamps: true })
 export class Citizen {
-  @Prop({ required: true, unique: true })
-  id: string;
-
   @Prop({ required: true })
   nic: string;
 
@@ -47,11 +44,8 @@ export class Citizen {
   @Prop({ required: true, enum: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] })
   blood_group: string;
 
-  @Prop()
+  @Prop({ default: "sri_lankan" })
   nationality: string;
-
-  @Prop()
-  profile_photo: string;
 
   @Prop()
   notes: string;

@@ -7,6 +7,7 @@ import { JwtService } from "@nestjs/jwt";
 import { CreateHouseHoldDTO } from "./dtos/create-household.dto";
 import { AuditLog, AuditLogDocument } from "src/auditlogs/schema/auditlog.schema";
 import { createAuditLog } from "src/common/utils/auditlogs.util";
+import { UpdateHouseHoldDTO } from "./dtos/update-household.dto";
 
 @Injectable()
 export class HouseHoldService {
@@ -107,11 +108,56 @@ export class HouseHoldService {
 
         const fetchhouse = await this.householeModel.findOne({ house_number: house_number })
 
-        if(!fetchhouse){
+        if (!fetchhouse) {
             throw new NotFoundException("The House cannot Found...")
         }
 
-        return { success: true, result: fetchhouse, message: "The House Data Fetched Success"}
+        return { success: true, result: fetchhouse, message: "The House Data Fetched Success" }
+
+    }
+
+    async UpdateHouseHold(
+        token: string,
+        house_number: string,
+        dto: UpdateHouseHoldDTO,
+        ipAddress?: string,
+        userAgent?: string
+    ) {
+        const payload = this.jwtService.verify(token)
+
+        const user = await this.userModel.findOne({ email: payload.user })
+
+        if (!user) {
+            throw new NotFoundException("The User Not Found")
+        }
+
+        const house = await this.householeModel.findOne({ house_number });
+        if (!house) {
+            await createAuditLog(this.auditlogModel, {
+                user: user._id,
+                action: 'UPDATING_UNKNOWN_HOUSE',
+                description: `House ${house_number} does not exist, and user ${user.email} attempted to update`,
+                ipAddress,
+                userAgent,
+                metadata: { ipAddress, userAgent },
+            });
+
+            throw new ConflictException('This house does not exist in the system');
+        }
+
+        Object.assign(house, dto);
+        await house.save();
+
+        await createAuditLog(this.auditlogModel, {
+            user: user._id,
+            action: 'HOUSEHOLD_UPDATED',
+            description: `House ${house_number} updated successfully by ${user.email}`,
+            ipAddress,
+            userAgent,
+            metadata: { ipAddress, userAgent, updateData: dto },
+        });
+
+        return { success: true, message: "House Updated Successful"}
 
     }
 }

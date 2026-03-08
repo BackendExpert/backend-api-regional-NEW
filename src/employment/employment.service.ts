@@ -85,4 +85,22 @@ export class EmploymentService {
         return { success: true, result: fetchallrecodes, message: "All Emaployment Recodes Fetched Success" }
     }
 
+    async GetOneEmploymentRecode(token: string, id: string) {
+        const payload = this.jwtService.verify(token)
+
+        const user = await this.userModel.findOne({ email: payload.user })
+
+        if (!user) {
+            throw new NotFoundException("The User Not Found")
+        }
+
+        const checkrecode = await this.employmentModel.findById(id).populate('citizan_id')
+
+        if(!checkrecode){
+            throw new NotFoundException("The Recode Not Found by Given ID")
+        }
+
+        return { success: true, result: checkrecode, message: "The Data Fetched Successfully"}
+    }
+
 }

@@ -7,6 +7,7 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { HouseHoldModule } from './household/household.module';
 import { CitizanModule } from './citizen/citizan.module';
+import { EmploymentModule } from './employment/employment.module';
 
 
 @Module({
@@ -18,7 +19,8 @@ import { CitizanModule } from './citizen/citizan.module';
     DatabaseModule,
     AuthModule,
     HouseHoldModule,
-    CitizanModule
+    CitizanModule,
+    EmploymentModule
   ],
   controllers: [AppController],
   providers: [AppService],

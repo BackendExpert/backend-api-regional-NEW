@@ -68,7 +68,21 @@ export class EmploymentService {
             metadata: { ipAddress, userAgent }
         });
 
-        return { success: true, message: "The New Employment Recode Added Successs"}
-
+        return { success: true, message: "The New Employment Recode Added Successs" }
     }
+
+    async GetallEmploymentRecodes(token: string) {
+        const payload = this.jwtService.verify(token)
+
+        const user = await this.userModel.findOne({ email: payload.user })
+
+        if (!user) {
+            throw new NotFoundException("The User Not Found")
+        }
+
+        const fetchallrecodes = await this.employmentModel.find().populate('citizan_id')
+
+        return { success: true, result: fetchallrecodes, message: "All Emaployment Recodes Fetched Success"}
+    }
+    
 }

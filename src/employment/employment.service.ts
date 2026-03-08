@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { AuditLog, AuditLogDocument } from "src/auditlogs/schema/auditlog.schema";
 import { User, UserDocument } from "src/user/schema/user.schema";
 import { Employment, EmploymentDocument } from "./schema/employment.schema";
@@ -49,7 +49,7 @@ export class EmploymentService {
         }
 
         const employment = await this.employmentModel.create({
-            citizan_id: dto.citizan_id,
+            citizan_id: new Types.ObjectId(dto.citizan_id),
             employment_status: dto.employment_status,
             job_title: dto.job_title,
             company_name: dto.company_name,
@@ -82,7 +82,7 @@ export class EmploymentService {
 
         const fetchallrecodes = await this.employmentModel.find().populate('citizan_id')
 
-        return { success: true, result: fetchallrecodes, message: "All Emaployment Recodes Fetched Success"}
+        return { success: true, result: fetchallrecodes, message: "All Emaployment Recodes Fetched Success" }
     }
-    
+
 }

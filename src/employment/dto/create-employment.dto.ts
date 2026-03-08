@@ -1,9 +1,8 @@
 import { IsMongoId, IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class CreateEmploymentDTO {
-    @IsString()
-    @IsNotEmpty()
     @IsMongoId()
+    @IsNotEmpty()
     citizan_id: string;
 
     @IsString()

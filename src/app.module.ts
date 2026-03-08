@@ -20,7 +20,7 @@ import { EmploymentModule } from './employment/employment.module';
     AuthModule,
     HouseHoldModule,
     CitizanModule,
-    EmploymentModule
+    EmploymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

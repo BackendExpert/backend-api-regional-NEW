@@ -24,7 +24,7 @@ export class Employment {
     @Prop({ required: true })
     monthly_income: number;
 
-    @Prop({ required: true, default: 'on-site', enum: ['on-site', 'online', 'hybrid'] })
+    @Prop({ required: true, default: 'onsite', enum: ['onsite', 'online', 'hybrid'] })
     work_location_type: string;
 
     @Prop({ required: true })

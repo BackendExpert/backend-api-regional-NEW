@@ -36,7 +36,7 @@ export class EmploymentController {
 
     @Get('all-recodes')
     @UseGuards(JwtAuthGuard, PermissionsGuard)
-    @Permissions('employment:create')
+    @Permissions('employment:fetch-all')
 
     fetchAllRecodes(
         @Headers('authorization') authHeader: string,

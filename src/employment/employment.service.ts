@@ -7,6 +7,8 @@ import { Employment, EmploymentDocument } from "./schema/employment.schema";
 import { Citizen, CitizenDocument } from "src/citizen/schema/citizen.schema";
 import { JwtService } from "@nestjs/jwt";
 import { CreateEmploymentDTO } from "./dto/create-employment.dto";
+import { createAuditLog } from "src/common/utils/auditlogs.util";
+
 
 @Injectable()
 export class EmploymentService {
@@ -42,10 +44,31 @@ export class EmploymentService {
 
         const checkcitizan = await this.citizanModel.findById(dto.citizan_id)
 
-        if(!checkcitizan){
+        if (!checkcitizan) {
             throw new NotFoundException("The Citizan Not in System, Check the Citizan ID")
         }
 
-        
+        const employment = await this.employmentModel.create({
+            citizan_id: dto.citizan_id,
+            employment_status: dto.employment_status,
+            job_title: dto.job_title,
+            company_name: dto.company_name,
+            sector: dto.sector,
+            monthly_income: dto.monthly_income,
+            work_location_type: dto.work_location_type,
+            work_location: dto.work_location
+        })
+
+        await createAuditLog(this.auditlogModel, {
+            user: user._id,
+            action: "CITIZAN_EMPLOYMENT_RECODE_CREATED",
+            description: `New Employment Recode add to ${dto.citizan_id} by ${user.email}`,
+            ipAddress,
+            userAgent,
+            metadata: { ipAddress, userAgent }
+        });
+
+        return { success: true, message: "The New Employment Recode Added Successs"}
+
     }
 }

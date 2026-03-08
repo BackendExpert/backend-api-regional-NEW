@@ -93,7 +93,9 @@ export class HouseHoldService {
             throw new NotFoundException("The User Not Found")
         }
 
-        const gethouses = await this.householeModel.find()
+        const gethouses = await this.householeModel
+            .find()
+            .populate('head_of_household');
 
         return { success: true, result: gethouses, message: "All Houses Fetched Success" }
     }
@@ -107,7 +109,9 @@ export class HouseHoldService {
             throw new NotFoundException("The User Not Found")
         }
 
-        const fetchhouse = await this.householeModel.findOne({ house_number: house_number })
+        const fetchhouse = await this.householeModel
+            .findOne({ house_number })
+            .populate('head_of_household');
 
         if (!fetchhouse) {
             throw new NotFoundException("The House cannot Found...")

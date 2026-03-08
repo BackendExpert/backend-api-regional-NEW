@@ -1,6 +1,6 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { User, UserDocument } from "src/user/schema/user.schema";
 import { HouseHold, HouseHoldDocument } from "./schema/house-hold.schema";
 import { JwtService } from "@nestjs/jwt";
@@ -54,11 +54,12 @@ export class HouseHoldService {
             throw new ConflictException("This House is Already Registed In Systerm")
         }
 
+
         const house = await this.householeModel.create({
             house_number: dto.house_number,
             address: dto.address,
             village: dto.village,
-            head_of_household: dto.head_of_household,
+            head_of_household: new Types.ObjectId(dto.head_of_household),
             member_count: dto.member_count,
             income_level: dto.income_level,
             land_ownership: dto.land_ownership,
@@ -144,6 +145,9 @@ export class HouseHoldService {
 
             throw new ConflictException('This house does not exist in the system');
         }
+        if (dto.head_of_household) {
+            dto.head_of_household = new Types.ObjectId(dto.head_of_household) as any;
+        }
 
         Object.assign(house, dto);
         await house.save();
@@ -201,7 +205,7 @@ export class HouseHoldService {
             metadata: { ipAddress, userAgent, house_number },
         });
 
-        return { successs: true, message: "House Deleted Success"}
+        return { successs: true, message: "House Deleted Success" }
 
     }
 }

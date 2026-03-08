@@ -3,7 +3,8 @@ import {
     IsNumber,
     IsBoolean,
     IsOptional,
-    IsNotEmpty
+    IsNotEmpty,
+    IsMongoId
 } from "class-validator";
 
 export class UpdateHouseHoldDTO {
@@ -17,6 +18,7 @@ export class UpdateHouseHoldDTO {
 
     @IsString()
     @IsNotEmpty()
+    @IsMongoId()
     head_of_household: string;
 
     @IsNumber()

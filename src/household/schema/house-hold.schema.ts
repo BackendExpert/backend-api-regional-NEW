@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 
 export type HouseHoldDocument = HouseHold & Document;
 
@@ -14,8 +14,8 @@ export class HouseHold {
     @Prop({ required: true })
     village: string;
 
-    @Prop({ required: true })
-    head_of_household: string;
+    @Prop({ type: Types.ObjectId, ref: 'Citizen', required: true })
+    head_of_household: Types.ObjectId;
 
     @Prop({ required: true })
     member_count: number;
